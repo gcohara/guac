@@ -1,7 +1,9 @@
 #include <algorithm>
+#include <climits>
 #include <deque>
 #include <functional>
 #include <iterator>
+#include <ostream>
 #include <string>
 #include <queue>
 #include <unordered_map>
@@ -14,6 +16,9 @@ using Byte = unsigned char;
 using CharFreqHashMap = std::unordered_map<Byte, long long int>;
 using CharPriorQ = std::priority_queue<Byte, std::vector<Byte>, std::greater<Byte>>;
 using CodeLenMap = std::map<int, CharPriorQ>;
+using Codeword = std::deque<bool>;
+using EncodingBook = std::unordered_map<Byte, Codeword>;
+using DecodingBook = std::unordered_map<Codeword, Byte>;
 
 
 // refactor to take references
@@ -25,26 +30,8 @@ struct Node {
     struct Node * left_child, * right_child;
 };
 
-struct Codeword {
-    //stores codewords backwards
-    std::vector<bool> bits;
 
-    void operator++() {
-        for (auto itr = this->bits.begin(); itr != this->bits.end(); ++itr) {
-            if (*itr == 0) {
-                *itr = 1;
-                return;
-            }
-            else {
-                *itr = 0;
-            }
-        }
-        this->bits.push_back(1);
-    }
-};
-
-class NodeCompare {
-public:
+struct NodeCompare {
     bool operator()(Node * n1, Node * n2) {
         return (n1->weight > n2->weight);
     }
@@ -59,7 +46,12 @@ bool is_leaf_node(Node * node);
 CharFreqHashMap get_frequencies (std::string const & input);
 NodePriorQ build_priority_queue (CharFreqHashMap const & frequencies);
 Node * build_huffman_tree (NodePriorQ& pq);
-void print_canonical_codebook(CodeLenMap const & clm);
+EncodingBook get_codebook_for_encoding(CodeLenMap& clm);
+std::vector<Byte> get_file_header(EncodingBook& ecb);
+void print_encoding_codebook(EncodingBook ecb);
+void increment_codeword(Codeword & cw);
+std::ostream &operator<<(std::ostream &os, Codeword const &cw);
+
 
 
 template<typename T> void print_pq(T pq);
@@ -69,7 +61,8 @@ int main(int argc, char ** argv) {
     using namespace std::string_literals;
     
     // open file
-    std::string const test = "oooh e ooh'?! ahaha ting tang walla walla bing bang"s;
+    // std::string const test = "oooh e ooh'?! ahaha ting tang walla walla bing bang"s;
+    std::string const test = "aabbbbcd";
     std::cout << "Test string is " << test.length( )* 8 << " bits long.\n";
 
     auto frequencies = get_frequencies(test);
@@ -90,62 +83,75 @@ int main(int argc, char ** argv) {
     // Build a map indexed by code length. The values are collections of chars.
     // Then, using this map, construct the canonical Huffman tree.
     auto code_lens = get_code_lengths(root, 0);
-    for (auto &n : code_lens) {
-        std::cout << n.first << " - ";
-        while(!empty(n.second)) {
-            std::cout << n.second.top() << ", ";
-            n.second.pop();
-        }
-        std::cout << std::endl;
+    // for (auto n : code_lens) {
+    //     std::cout << n.first << " - ";
+    //     while(!empty(n.second)) {
+    //         std::cout << n.second.top() << ", ";
+    //         n.second.pop();
+    //     }
+    //     std::cout << std::endl;
+    // }
+    auto encoding_codebook = get_codebook_for_encoding(code_lens);
+    print_encoding_codebook(encoding_codebook);
+    auto fh = get_file_header(encoding_codebook);
+    std::cout << fh.size() << "\n";
+    for (auto itr = fh.rbegin(); itr != fh.rend(); itr++) {
+        std::cout << static_cast<int>(*itr) << " ";
     }
-    print_canonical_codebook(code_lens);
+    std::cout << std::endl;
     
 }
 
-void increment_codeword(std::vector<bool> & cw) {
-    for (auto itr = cw.begin(); itr != cw.end(); ++itr) {
-            if (*itr == 0) {
-                *itr = 1;
-                return;
-            }
-            else {
-                *itr = 0;
-            }
-        }
-    cw.push_back(1);
+std::ostream &operator<<(std::ostream &os, Codeword const &cw) {
+    for ( auto& x : cw ) {
+        os << x;
+    }
+    return os;
 }
 
-void increment_codeword(std::string & cw) {
-    if (cw.length() == 0) {
-        cw.push_back('0');
-        return;
-    }
-    for (auto itr = cw.begin(); itr != cw.end(); ++itr) {
-            if (*itr == '1') {
-                *itr = '1';
-                return;
-            }
-            else {
-                *itr = '0';
-            }
+std::vector<Byte> get_file_header(EncodingBook& ecb) {
+    std::vector<Byte> file_header {};
+    for (Byte b = 0; b < UCHAR_MAX; b++) {
+        if (ecb.contains(b)) {
+            file_header.push_back(ecb.at(b).size());
         }
-    cw.push_back('1');
+        else {
+            file_header.push_back(0);
+        }
+    }
+    return file_header;
 }
-void print_canonical_codebook(CodeLenMap const & clm) {
-    // this is wrong btw
-    // std::vector<bool> codeword {0};
-    std::deque<bool> codeword {};
+
+EncodingBook get_codebook_for_encoding(CodeLenMap& clm) {
+    EncodingBook ecb {};
+    Codeword codeword {};
     for ( auto& n : clm ) {
         auto codeword_length = n.first;
         auto symbols = n.second;
-        increment_codeword(codeword);
         while ( codeword.size() < codeword_length ) {
-            codeword.push_back(0);
+                codeword.push_back(0);
+            }
+        while (!symbols.empty()) {
+            auto current_symbol = symbols.top();
+            symbols.pop();
+            ecb.insert({current_symbol, codeword});
+            increment_codeword(codeword);
         }
-        std::cout << std::reverse_copy(codeword);
-        
+    }
+    return ecb;
+}
+
+
+void print_encoding_codebook(EncodingBook ecb) {
+    for (auto & n : ecb) {
+        std::cout << n.first << " - ";
+        for (auto x : n.second) {
+            std::cout << x;
+        }
+        std::cout << std::endl;
     }
 }
+
 
 CodeLenMap& get_code_lengths(Node * tree, int depth) {
     static CodeLenMap  code_length_map;
@@ -163,6 +169,7 @@ CodeLenMap& get_code_lengths(Node * tree, int depth) {
     }
     return code_length_map;
 }
+
 
 Node * build_huffman_tree(NodePriorQ & pq) {
     while (pq.size() > 1) {
@@ -205,6 +212,24 @@ CharFreqHashMap get_frequencies (std::string const & input) {
         frequencies.at(c)++;
     }
     return frequencies;
+}
+
+
+void increment_codeword(Codeword & cw) {
+    if (cw.size() == 0) {
+        cw.push_back(0);
+        return;
+    }
+    for (auto itr = cw.rbegin(); itr != cw.rend(); ++itr) {
+            if (*itr == 0) {
+                *itr = 1;
+                return;
+            }
+            else {
+                *itr = 0;
+            }
+        }
+    cw.push_front(1);
 }
 
 
