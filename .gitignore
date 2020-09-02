@@ -1,4 +1,7 @@
 a.out
-#*#
-.#*
+\#*\#
+.\#*
 *.guac
+build/*
+bin/*
+.DS_Store
