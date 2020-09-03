@@ -5,6 +5,7 @@
 
 namespace FileInterface {
     CharFreqHashMap get_frequencies(FilePath input_file);
+    void compress_file(FilePath input_file, EncodingBook ecb, CodeLenMap cwlens);
 }
 
 #endif

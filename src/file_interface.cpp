@@ -11,8 +11,16 @@ CharFreqHashMap FileInterface::get_frequencies(FilePath input_file) {
         std::cerr << "Unable to open input file.\n";
         exit(EXIT_FAILURE);
     }
-    // why can't this be unsigned?
+    CharFreqHashMap frequencies{};
     char input_buffer[BUFSIZ];
-    ifs.read(input_buffer, BUFSIZ);
-    
+    while (ifs) {
+        ifs.read(input_buffer, BUFSIZ);
+        auto bytes_read = ifs.gcount();
+        for (int i = 0; i < bytes_read; i++) {
+            Byte c = input_buffer[i];
+            frequencies.try_emplace(c, 0);
+            frequencies.at(c)++;
+        }
+    }
+    return frequencies;
 }
