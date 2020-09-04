@@ -34,7 +34,6 @@ int main(int argc, char ** argv) {
     auto code_lens = Huffman::get_codeword_lengths(frequencies);
     auto encoding_codebook = Codebooks::get_codebook_for_encoding(code_lens);
 
-    //segfault after this
     FileInterface::compress_file(input_file, encoding_codebook);
 
 }

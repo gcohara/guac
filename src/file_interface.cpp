@@ -45,6 +45,7 @@ void FileInterface::compress_file(FilePath input, EncodingBook ecb) {
         }
     }
     // now we either do or don't have some spare bits at the end
+    // this function segfaults
     write_file_footer(encoding_buffer, ofs);
 }
 
@@ -68,7 +69,8 @@ namespace {
     void write_file_footer(std::deque<bool> encoding_buffer, std::ofstream& ofs) {
         
         if (encoding_buffer.size() != 0) {
-            ofs.write(0, 1);
+            Byte unused_bits = 0;
+            ofs.write(reinterpret_cast<char *>(&unused_bits), 1);
         }
         else {
             Byte unused_bits = 8;
