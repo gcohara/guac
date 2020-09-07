@@ -9,18 +9,15 @@
 #include "../include/file_interface.hpp"
 
 using std::deque,
-      std::ofstream,
-      std::ifstream;
+    std::ofstream,
+    std::ifstream;
 
 namespace {
     deque<Byte> get_file_header(EncodingBook& ecb);
     void write_file_header(ofstream& ofs, EncodingBook& ecb);
     FilePath get_output_path(FilePath input_file);
-    ofstream open_output_filestream(FilePath output_file);
-    ifstream open_input_filestream(FilePath input_file);
     Byte byte_from_encoding_buffer(deque<bool>& out_buf);
-    void write_file_footer(deque<bool> encoding_buffer, ofstream& ofs);
-    
+    Byte write_file_end(deque<bool> encoding_buffer, ofstream &ofs);
 }
 
 void FileInterface::compress_file(FilePath input, EncodingBook ecb) {
@@ -50,7 +47,11 @@ void FileInterface::compress_file(FilePath input, EncodingBook ecb) {
         }
     }
     // now we either do or don't have some spare bits at the end
-    write_file_footer(encoding_buffer, ofs);
+    auto spare_bits = write_file_end(encoding_buffer, ofs);
+
+    // write spare_bits
+    ofs.seekp(255);
+    ofs.write(reinterpret_cast<char *>(&spare_bits), 1);
 }
 
 CharFreqHashMap FileInterface::get_frequencies(FilePath input_file) {
@@ -69,30 +70,49 @@ CharFreqHashMap FileInterface::get_frequencies(FilePath input_file) {
     return frequencies;
 }
 
-namespace {
-    void write_file_footer(deque<bool> encoding_buffer, ofstream& ofs) {
-        if (encoding_buffer.size() == 0) {
-            Byte unused_bits = 0;
-            ofs.write(reinterpret_cast<char *>(&unused_bits), 1);
-        }
-        else {
-            Byte unused_bits = 8;
-            Byte penultimate_byte = 0;
-            while (encoding_buffer.size() != 0) {
-                penultimate_byte <<= 1;
-                penultimate_byte += encoding_buffer.front();
-                encoding_buffer.pop_front();
-                unused_bits--;
-            }
-            penultimate_byte <<= unused_bits;
-            char out[2] = {
-                static_cast<char>(penultimate_byte),
-                static_cast<char>(unused_bits)
-            };
-            ofs.write(out, 2);
-        }
+ofstream FileInterface::open_output_filestream(FilePath output_file) {
+    ofstream ofs (output_file, std::ios::binary);
+    if ( !ofs ) {
+        std::cerr << "Unable to open output file.\n";
+        exit(EXIT_FAILURE);
     }
+    return ofs;
+}
     
+ifstream FileInterface::open_input_filestream(FilePath input_file) {
+    ifstream ifs (input_file, std::ios::binary);
+    if ( !ifs ) {
+        std::cerr << "Unable to open input file.\n";
+        exit(EXIT_FAILURE);
+    }
+    return ifs;
+}
+
+namespace {
+    Byte write_file_end(deque<bool> encoding_buffer, ofstream &ofs) {
+        Byte unused_bits = 0;
+        // if (encoding_buffer.size() == 0) {
+        //     Byte unused_bits = 0;
+        //     ofs.write(reinterpret_cast<char *>(&unused_bits), 1);
+        // }
+        if (encoding_buffer.size() != 0) {
+            unused_bits = 8;
+            Byte final_byte = 0;
+            while (encoding_buffer.size() != 0) {
+              final_byte <<= 1;
+              final_byte += encoding_buffer.front();
+              encoding_buffer.pop_front();
+              unused_bits--;
+            }
+            final_byte <<= unused_bits;
+            //     char out[2] = {static_cast<char>(penultimate_byte),
+            //         static_cast<char>(unused_bits)};
+            //     ofs.write(out, 2);
+            ofs.write(reinterpret_cast<char *>(&final_byte), 1);
+        }
+        return unused_bits;
+    }
+
     Byte byte_from_encoding_buffer(deque<bool>& out_buf) {
         Byte output = 0;
         for (int i = 0; i < 8; i++) {
@@ -102,7 +122,10 @@ namespace {
         }
         return output;
     }
-    
+    // Writes out 256 bytes - the first 255 are the codeword lengths for
+    // each symbol in our alphabet.
+    // The 256th bite is the number of trailing bits to ignore at the end of
+    // the file.
     void write_file_header(ofstream& ofs, EncodingBook& ecb) {
         Byte file_header[256] = {0};
         for (auto& n : ecb) {
@@ -118,23 +141,7 @@ namespace {
         return output_path;
     }
     
-    ofstream open_output_filestream(FilePath output_file) {
-        ofstream ofs (output_file, std::ios::binary);
-        if ( !ofs ) {
-            std::cerr << "Unable to open output file.\n";
-            exit(EXIT_FAILURE);
-        }
-        return ofs;
-    }
-    
-    ifstream open_input_filestream(FilePath input_file) {
-        ifstream ifs (input_file, std::ios::binary);
-        if ( !ifs ) {
-            std::cerr << "Unable to open input file.\n";
-            exit(EXIT_FAILURE);
-        }
-        return ifs;
-    }
+
     
     deque<Byte> get_file_header(EncodingBook& ecb) {
         deque<Byte> file_header {};

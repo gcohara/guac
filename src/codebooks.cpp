@@ -26,24 +26,24 @@ EncodingBook Codebooks::codebook_for_encoding(CodeLenMap& clm) {
     return ecb;
 }
 
-DecodingBook Codebooks::codebook_for_decoding(CodeLenMap& clm) {
-    DecodingBook dcb {};
-    Codeword codeword {};
-    for (auto& n : clm) {
-        auto codeword_length = n.first;
-        auto symbols = n.second;
-        while ( codeword.size() < codeword_length ) {
-            codeword.push_back(0);
-        }
-        while (!symbols.empty()) {
-            auto current_symbol = symbols.top();
-            symbols.pop();
-            dcb.insert({codeword, current_symbol});
-            increment_codeword(codeword);
-        }
-    }
-    return dcb;
-}
+// DecodingBook Codebooks::codebook_for_decoding(CodeLenMap& clm) {
+//     DecodingBook dcb {};
+//     Codeword codeword {};
+//     for (auto& n : clm) {
+//         auto codeword_length = n.first;
+//         auto symbols = n.second;
+//         while ( codeword.size() < codeword_length ) {
+//             codeword.push_back(0);
+//         }
+//         while (!symbols.empty()) {
+//             auto current_symbol = symbols.top();
+//             symbols.pop();
+//             dcb.insert({codeword, current_symbol});
+//             increment_codeword(codeword);
+//         }
+//     }
+//     return dcb;
+// }
 
 namespace {
     void print_encoding_codebook(EncodingBook ecb) {
