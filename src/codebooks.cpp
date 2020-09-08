@@ -5,6 +5,7 @@
 namespace {
     void print_encoding_codebook(EncodingBook ecb);
     void increment_codeword(Codeword & cw);
+    void print_dcb(DecodingBook dcb);
 }
 
 EncodingBook Codebooks::codebook_for_encoding(CodeLenMap& clm) {
@@ -26,26 +27,38 @@ EncodingBook Codebooks::codebook_for_encoding(CodeLenMap& clm) {
     return ecb;
 }
 
-// DecodingBook Codebooks::codebook_for_decoding(CodeLenMap& clm) {
-//     DecodingBook dcb {};
-//     Codeword codeword {};
-//     for (auto& n : clm) {
-//         auto codeword_length = n.first;
-//         auto symbols = n.second;
-//         while ( codeword.size() < codeword_length ) {
-//             codeword.push_back(0);
-//         }
-//         while (!symbols.empty()) {
-//             auto current_symbol = symbols.top();
-//             symbols.pop();
-//             dcb.insert({codeword, current_symbol});
-//             increment_codeword(codeword);
-//         }
-//     }
-//     return dcb;
-// }
+DecodingBook Codebooks::codebook_for_decoding(CodeLenMap& clm) {
+    DecodingBook dcb {};
+    Codeword codeword {};
+    for (auto& n : clm) {
+        auto codeword_length = n.first;
+        auto symbols = n.second;
+        while ( codeword.size() < codeword_length ) {
+            codeword.push_back(0);
+        }
+        while (!symbols.empty()) {
+            auto current_symbol = symbols.top();
+            symbols.pop();
+            dcb.insert({codeword, current_symbol});
+            increment_codeword(codeword);
+        }
+    }
+    print_dcb(dcb);
+    return dcb;
+}
+
+
 
 namespace {
+     void print_dcb(DecodingBook dcb) {
+        for (auto& n : dcb) {
+            for (auto x : n.first) {
+                std::cout << x;
+            }
+            std::cout << " is key for " << n.second << std::endl;
+        }
+    }
+    
     void print_encoding_codebook(EncodingBook ecb) {
         for (auto & n : ecb) {
             std::cout << n.first << " - ";

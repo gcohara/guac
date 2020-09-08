@@ -48,9 +48,9 @@ int main(int argc, char ** argv) {
             std::cout << "Length " << n.first << ": ";
             print_pq(n.second);
         }
-        // auto decoding_codebook = Codebooks::codebook_for_decoding(code_lens);
+        auto decoding_codebook = Codebooks::codebook_for_decoding(code_lens);
 
-        // Decompress::decompress_file(input_file, decoding_codebook);
+        Decompress::decompress_file(input_file, decoding_codebook);
     }
 }
 
