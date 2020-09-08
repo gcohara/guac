@@ -50,7 +50,7 @@ void FileInterface::compress_file(FilePath input, EncodingBook ecb) {
     auto spare_bits = write_file_end(encoding_buffer, ofs);
 
     // write spare_bits
-    ofs.seekp(255);
+    ofs.seekp(256);
     ofs.write(reinterpret_cast<char *>(&spare_bits), 1);
 }
 

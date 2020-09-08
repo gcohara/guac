@@ -41,15 +41,7 @@ int main(int argc, char ** argv) {
     else if (argv[2] == "--decompress"s) {
         FilePath input_file {argv[1]};
         auto code_lens = Decompress::codeword_lengths_from_file(input_file);
-        for (auto n : code_lens) {
-            if (n.first == 0) {
-                continue;
-            }
-            std::cout << "Length " << n.first << ": ";
-            print_pq(n.second);
-        }
         auto decoding_codebook = Codebooks::codebook_for_decoding(code_lens);
-
         Decompress::decompress_file(input_file, decoding_codebook);
     }
 }

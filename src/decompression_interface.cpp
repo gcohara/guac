@@ -18,11 +18,10 @@ namespace {
 void Decompress::decompress_file(FilePath input, DecodingBook dcb) {
     auto ifs = FileInterface::open_input_filestream(input);
     auto output_file = input.replace_extension(); //remove the ".guac"
-    std::cout << output_file << "\n";
     auto ofs = FileInterface::open_output_filestream(output_file);
     // Get the 255th byte, which tells us how many bits of the penultimate byte
     // to ignore
-    ifs.seekg(255);
+    ifs.seekg(256);
     Byte loose_bits;
     ifs.read(reinterpret_cast<char *>(&loose_bits), 1);
     // Now start reading
@@ -39,8 +38,8 @@ void Decompress::decompress_file(FilePath input, DecodingBook dcb) {
 CodeLenMap Decompress::codeword_lengths_from_file(FilePath input) {
     auto ifs = FileInterface::open_input_filestream(input);
     CodeLenMap clm {};
-    char cw_lens[255];
-    ifs.read(cw_lens, 255);
+    char cw_lens[256];
+    ifs.read(cw_lens, 256);
     for (Byte i = 0; i < 255; i++) {
         // ignore codewords with zero length
         if (cw_lens[i] == 0) {
@@ -55,36 +54,15 @@ CodeLenMap Decompress::codeword_lengths_from_file(FilePath input) {
 namespace {
    
     void decode_bitqueue(std::ofstream& ofs, DecodingBook dcb, std::deque<bool> bits) {
-        for (auto x : bits) {
-            std::cout << x;
-        }
-        std::cout << std::endl;
         Codeword cw {};
         while (!bits.empty()) {
             cw.push_back(bits.front());
             bits.pop_front();
-            
-            std::cout << "Current cw is: ";
-            for (auto x : cw) {
-                std::cout << x;
-            }
-            std::cout << std::endl;
-            
+
             if (dcb.contains(cw)) {
                 auto output_byte = dcb.at(cw);
-                
-                std::cout << "Writing " << static_cast<int>(output_byte);
-                std::cout << " from codeword ";
-                for (auto x : cw) {
-                    std::cout << x;
-                }
-                std::cout << std::endl;
-                
                 ofs.write(reinterpret_cast<char *>(&output_byte), 1);
                 cw.clear();
-            }
-            else {
-                std::cout << "No match...\n";
             }
         }
     }

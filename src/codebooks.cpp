@@ -43,7 +43,6 @@ DecodingBook Codebooks::codebook_for_decoding(CodeLenMap& clm) {
             increment_codeword(codeword);
         }
     }
-    print_dcb(dcb);
     return dcb;
 }
 
