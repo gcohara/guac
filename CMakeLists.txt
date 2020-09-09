@@ -10,7 +10,7 @@ set(
     ${CMAKE_HOME_DIRECTORY}/bin
     )
 
-set(CMAKE_CXX_COMPILER /usr/local/bin/g++-10)
+set(CMAKE_CXX_COMPILER /usr/local/opt/llvm/bin/clang++)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_FLAGS "-g")
