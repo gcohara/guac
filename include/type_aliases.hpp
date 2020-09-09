@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <queue>
 #include <map>
+
 using Codeword = std::deque<bool>;
 struct CwHash;
 using Byte = std::uint8_t;
@@ -17,6 +18,7 @@ using DecodingBook = std::unordered_map<Codeword, Byte, CwHash>;
 using EncodedMessage = std::deque<bool>;
 using ByteVec = std::vector<Byte>;
 using ByteDeq = std::deque<Byte>;
+using BitQueue = std::deque<bool>;
 using FilePath = std::filesystem::path;
 struct Node;
 

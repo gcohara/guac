@@ -6,12 +6,13 @@
 #include <iostream>
 #include <ostream>
 
-using std::ifstream;
+using std::ifstream,
+    std::ofstream;
 
 namespace {
-    std::deque<bool> convert_buffer_to_bits(Byte * input_buffer, std::streamsize bytes_read);
-    void add_byte_to_bitqueue(std::deque<bool>& bitqueue, Byte byte);
-    void decode_bitqueue(std::ofstream& ofs, DecodingBook dcb, std::deque<bool> bits);
+    BitQueue convert_buffer_to_bits(Byte * input_buffer, std::streamsize bytes_read);
+    void add_byte_to_bitqueue(BitQueue& bitqueue, Byte byte);
+    void decode_bitqueue(ofstream& ofs, DecodingBook dcb, BitQueue bits);
     
 }
 
@@ -19,17 +20,23 @@ void Decompress::decompress_file(FilePath input, DecodingBook dcb) {
     auto ifs = FileInterface::open_input_filestream(input);
     auto output_file = input.replace_extension(); //remove the ".guac"
     auto ofs = FileInterface::open_output_filestream(output_file);
-    // Get the 255th byte, which tells us how many bits of the penultimate byte
+    // Get the 256th byte, which tells us how many bits of the penultimate byte
     // to ignore
     ifs.seekg(256);
     Byte loose_bits;
     ifs.read(reinterpret_cast<char *>(&loose_bits), 1);
+    std::cout << "Loose bits: " << static_cast<int>(loose_bits) << std::endl;
     // Now start reading
     Byte input_buffer[BUFSIZ];
     while (ifs) {
         ifs.read(reinterpret_cast<char *>(input_buffer), BUFSIZ);
         auto bytes_read = ifs.gcount();
-        std::deque<bool> bits = convert_buffer_to_bits(input_buffer, bytes_read);
+        auto bits = convert_buffer_to_bits(input_buffer, bytes_read);
+        if (!ifs) {             // i.e if it's the last read
+            for (unsigned i = 0; i < loose_bits; i++) {
+                bits.pop_back(); // discard those loose bits
+            }
+        }
         decode_bitqueue(ofs, dcb, bits);
     }
     
@@ -53,7 +60,7 @@ CodeLenMap Decompress::codeword_lengths_from_file(FilePath input) {
 
 namespace {
    
-    void decode_bitqueue(std::ofstream& ofs, DecodingBook dcb, std::deque<bool> bits) {
+    void decode_bitqueue(std::ofstream& ofs, DecodingBook dcb, BitQueue bits) {
         Codeword cw {};
         while (!bits.empty()) {
             cw.push_back(bits.front());
@@ -67,9 +74,7 @@ namespace {
         }
     }
     
-    std::deque<bool>
-    convert_buffer_to_bits
-    (Byte * input_buffer, std::streamsize bytes_read) {
+    BitQueue convert_buffer_to_bits(Byte * input_buffer, std::streamsize bytes_read) {
         std::deque<bool> out {};
         for (unsigned i = 0; i < bytes_read; i++) {
             add_byte_to_bitqueue(out, input_buffer[i]);
@@ -79,7 +84,7 @@ namespace {
         
     }
 
-    void add_byte_to_bitqueue(std::deque<bool>& bitqueue, Byte byte) {
+    void add_byte_to_bitqueue(BitQueue& bitqueue, Byte byte) {
         for (int i = 0; i < 8; i++) {
             bitqueue.push_back(byte & 128);
             byte <<= 1;
