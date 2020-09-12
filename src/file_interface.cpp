@@ -115,17 +115,17 @@ namespace {
         }
         return output;
     }
-    // Writes out 256 bytes - the first 255 are the codeword lengths for
+    // Writes out 257 bytes - the first 256 are the codeword lengths for
     // each symbol in our alphabet.
-    // The 256th bite is the number of trailing bits to ignore at the end of
+    // The 257th bite is the number of trailing bits to ignore at the end of
     // the file.
     void write_file_header(ofstream& ofs, EncodingBook& ecb) {
-        Byte file_header[256] = {0};
+        Byte file_header[257] = {0};
         for (auto& n : ecb) {
             auto byte = n.first;
             file_header[byte] = n.second.size();
         }
-        ofs.write(reinterpret_cast<char *>(file_header), 256);
+        ofs.write(reinterpret_cast<char *>(file_header), 257);
     }
     
     FilePath get_output_path(FilePath input_file) {

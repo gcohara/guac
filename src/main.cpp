@@ -20,7 +20,8 @@
 #include "../include/file_interface.hpp"
 #include "../include/decompression_interface.hpp"
 
-template<typename T> void print_pq(T pq);
+void print_pq(CharPriorQ pq);
+void print_cw_lens(CodeLenMap clm);
 
 int main(int argc, char ** argv) {
     using namespace std::string_literals;
@@ -31,10 +32,13 @@ int main(int argc, char ** argv) {
         auto frequencies = FileInterface::get_frequencies(input_file);
         // Print them out for checking!
         for (auto n : frequencies) {
-            std::cout << "Key:[" << n.first << "] Value:[" << n.second << "]\n";
+            std::cout << "Key:[" << static_cast<int>(n.first) << "] Value:["
+                      << n.second << "]\n";
         }
         auto code_lens = Huffman::get_codeword_lengths(frequencies);
+        print_cw_lens(code_lens);
         auto encoding_codebook = Codebooks::codebook_for_encoding(code_lens);
+        
 
         FileInterface::compress_file(input_file, encoding_codebook);
     }
@@ -46,9 +50,16 @@ int main(int argc, char ** argv) {
     }
 }
 
-template<typename T> void print_pq(T pq){
+void print_cw_lens(CodeLenMap clm) {
+    for (auto& n : clm) {
+        std::cout << "Of length " << n.first << ":\n";
+        print_pq(n.second);
+    }
+}
+
+void print_pq(CharPriorQ pq){
     while (!pq.empty()) {
-        std::cout << pq.top() << ", ";
+        std::cout << static_cast<int>(pq.top()) << ", ";
         pq.pop();
     }
     std::cout << "\n";

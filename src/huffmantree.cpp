@@ -1,4 +1,5 @@
 #include "../include/huffmantree.hpp"
+#include <iostream>
 
 struct Node {
     long long int weight;
@@ -20,6 +21,9 @@ namespace {
     NodePriorQ build_priority_queue (CharFreqHashMap const & frequencies);
     bool is_leaf_node(Node * node);
     CodeLenMap& get_code_lengths(Node * tree, int depth);
+
+    void print_pq(NodePriorQ);
+    void print_ht(Node*);
 }
 
 // Given the frequencies of each character in the input file, returns a map
@@ -27,15 +31,59 @@ namespace {
 // Huffman codeword.
 CodeLenMap Huffman::get_codeword_lengths(CharFreqHashMap const & char_freqs) {
     auto pq = build_priority_queue(char_freqs);
+    // print_pq(pq); // ok!
     auto ht_root = build_huffman_tree(pq);
+    // std::cout << "Printing Huffman tree...\n";
+    // print_ht(ht_root); // ok!
     auto cw_lens = get_code_lengths(ht_root, 0);
     return cw_lens;
 }
 
 namespace {
+    void print_ht(Node * ht) {
+        if (is_leaf_node(ht)) {
+            std::cout << "With weight " << ht->weight << " we have:\n";
+            for (auto x : ht->bytes) {
+                std::cout << static_cast<int>(x) << ", ";
+            }
+            std::cout << std::endl;
+        }
+        else {
+            print_ht(ht->left_child);
+            print_ht(ht->right_child);
+        }
+    }
+    
+    void print_pq(NodePriorQ pq) {
+        while (!pq.empty()) {
+            auto top = pq.top();
+            std::cout << "With weight " << top->weight << " we have:\n";
+            for (auto x : top->bytes) {
+                std::cout << static_cast<int>(x) << ", ";
+            }
+            std::cout << std::endl;
+            pq.pop();
+        }
+    }
+
+    void print_node(Node * n) {
+        std::cout << "Printing node with address " << n << "\n";
+        std::cout << "With weight " << n->weight << " we have:\n";
+        for (auto x : n->bytes) {
+            std::cout << static_cast<int>(x) << ", ";
+        }
+        std::cout << std::endl;
+    }
+
+
+    
     CodeLenMap& get_code_lengths(Node * tree, int depth) {
+        // returns a reference since we have static lifetime
         static CodeLenMap  code_length_map;
         if (is_leaf_node(tree)) {
+            // print_node(tree);
+            // std::cout << "Leaf node! Adding " << tree->bytes[0] << " with depth "
+            //           << depth << "\n";
             code_length_map.try_emplace(depth, CharPriorQ {});
             code_length_map.at(depth).push(tree->bytes[0]);
         }

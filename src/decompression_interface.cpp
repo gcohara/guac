@@ -33,6 +33,7 @@ void Decompress::decompress_file(FilePath input, DecodingBook dcb) {
         auto bytes_read = ifs.gcount();
         auto bits = convert_buffer_to_bits(input_buffer, bytes_read);
         if (!ifs) {             // i.e if it's the last read
+            // CAUTION COULD BE A BUG IF THERE IS A MULTIPLE OF 256 BYTES IN FILE
             for (unsigned i = 0; i < loose_bits; i++) {
                 bits.pop_back(); // discard those loose bits
             }
