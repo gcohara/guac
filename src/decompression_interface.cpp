@@ -12,8 +12,15 @@ using std::ifstream,
 namespace {
     BitQueue convert_buffer_to_bits(Byte * input_buffer, std::streamsize bytes_read);
     void add_byte_to_bitqueue(BitQueue& bitqueue, Byte byte);
-    void decode_bitqueue(ofstream& ofs, DecodingBook dcb, BitQueue bits);
+    void decode_bitqueue(ofstream& ofs, DecodingBook dcb, BitQueue& bits);
     
+}
+
+void print_bitqueue(BitQueue bq) {
+    for (bool b : bq) {
+        std::cout << b;
+    }
+    std::cout << std::endl;
 }
 
 void Decompress::decompress_file(FilePath input, DecodingBook dcb) {
@@ -26,18 +33,24 @@ void Decompress::decompress_file(FilePath input, DecodingBook dcb) {
     Byte loose_bits;
     ifs.read(reinterpret_cast<char *>(&loose_bits), 1);
     std::cout << "Loose bits: " << static_cast<int>(loose_bits) << std::endl;
+    
     // Now start reading
     Byte input_buffer[BUFSIZ];
+    // BitQueue bits {};
     while (ifs) {
         ifs.read(reinterpret_cast<char *>(input_buffer), BUFSIZ);
         auto bytes_read = ifs.gcount();
+        std::cout << "Bytes read in: " << bytes_read << "\n";
         auto bits = convert_buffer_to_bits(input_buffer, bytes_read);
+        std::cout << "Which was converted to " << bits.size() << " bits\n";
+        // print_bitqueue(bits);
         if (!ifs) {             // i.e if it's the last read
             // CAUTION COULD BE A BUG IF THERE IS A MULTIPLE OF 256 BYTES IN FILE
             for (unsigned i = 0; i < loose_bits; i++) {
                 bits.pop_back(); // discard those loose bits
             }
         }
+        // problem lies below...
         decode_bitqueue(ofs, dcb, bits);
     }
     
@@ -61,8 +74,8 @@ CodeLenMap Decompress::codeword_lengths_from_file(FilePath input) {
 
 namespace {
    
-    void decode_bitqueue(std::ofstream& ofs, DecodingBook dcb, BitQueue bits) {
-        Codeword cw {};
+    void decode_bitqueue(std::ofstream& ofs, DecodingBook dcb, BitQueue& bits) {
+        Codeword static cw {};
         while (!bits.empty()) {
             cw.push_back(bits.front());
             bits.pop_front();

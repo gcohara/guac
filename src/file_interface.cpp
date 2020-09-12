@@ -32,6 +32,7 @@ void FileInterface::compress_file(FilePath input, EncodingBook ecb) {
     while (ifs) {
         ifs.read(input_buffer, BUFSIZ);
         auto bytes_read = ifs.gcount();
+        std::cout << "We read " << bytes_read << " bytes\n";
         for (int i = 0; i < bytes_read; i++) {
             Byte c = input_buffer[i];
             auto cw = ecb.at(c);
@@ -46,6 +47,7 @@ void FileInterface::compress_file(FilePath input, EncodingBook ecb) {
             ofs.write(&byte_out, 1);
         }
     }
+    
     // now we either do or don't have some spare bits at the end
     auto spare_bits = write_file_end(encoding_buffer, ofs);
     std::cout << "Spare bits: " << static_cast<int>(spare_bits) << std::endl;

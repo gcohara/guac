@@ -26,9 +26,15 @@ void print_cw_lens(CodeLenMap clm);
 int main(int argc, char ** argv) {
     using namespace std::string_literals;
 
-    if (argv[2] == "--compress"s) {
-        FilePath input_file {argv[1]};
-        FilePath output_file {argv[1] + ".guac"s};
+    if (argv[1] == "--compress"s) {
+        FilePath input_file {argv[2]};
+        FilePath output_file;
+        if (argc < 4) {
+            output_file = {argv[2] + ".guac"s};
+        }
+        else {
+            output_file = {argv[3]};
+        }
         auto frequencies = FileInterface::get_frequencies(input_file);
         // Print them out for checking!
         for (auto n : frequencies) {
@@ -42,8 +48,9 @@ int main(int argc, char ** argv) {
 
         FileInterface::compress_file(input_file, encoding_codebook);
     }
-    else if (argv[2] == "--decompress"s) {
-        FilePath input_file {argv[1]};
+    else if (argv[1] == "--decompress"s) {
+        // need to add capability to provide an output filename
+        FilePath input_file {argv[2]};
         auto code_lens = Decompress::codeword_lengths_from_file(input_file);
         auto decoding_codebook = Codebooks::codebook_for_decoding(code_lens);
         Decompress::decompress_file(input_file, decoding_codebook);
