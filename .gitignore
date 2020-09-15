@@ -4,4 +4,6 @@ a.out
 *.guac
 build/*
 bin/*
+testfiles/compressed/*
+testfiles/decompressed*
 .DS_Store

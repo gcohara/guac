@@ -5,7 +5,7 @@
 
 namespace Decompress {
     CodeLenMap codeword_lengths_from_file(FilePath compressed_file);
-    void decompress_file(FilePath compressed_file, DecodingBook dcb);
+    void decompress_file(FilePath compressed_file, FilePath output, DecodingBook dcb);
 }
 
 #endif

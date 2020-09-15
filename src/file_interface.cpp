@@ -20,10 +20,9 @@ namespace {
     Byte write_file_end(deque<bool> encoding_buffer, ofstream &ofs);
 }
 
-void FileInterface::compress_file(FilePath input, EncodingBook ecb) {
+void FileInterface::compress_file(FilePath input, FilePath output, EncodingBook ecb) {
     auto ifs = open_input_filestream(input);
-    auto output_file = get_output_path(input);
-    auto ofs = open_output_filestream(output_file);
+    auto ofs = open_output_filestream(output);
     write_file_header(ofs, ecb);
 
     char input_buffer[BUFSIZ];
@@ -32,7 +31,7 @@ void FileInterface::compress_file(FilePath input, EncodingBook ecb) {
     while (ifs) {
         ifs.read(input_buffer, BUFSIZ);
         auto bytes_read = ifs.gcount();
-        std::cout << "We read " << bytes_read << " bytes\n";
+        // std::cout << "We read " << bytes_read << " bytes\n";
         for (int i = 0; i < bytes_read; i++) {
             Byte c = input_buffer[i];
             auto cw = ecb.at(c);
@@ -50,7 +49,7 @@ void FileInterface::compress_file(FilePath input, EncodingBook ecb) {
     
     // now we either do or don't have some spare bits at the end
     auto spare_bits = write_file_end(encoding_buffer, ofs);
-    std::cout << "Spare bits: " << static_cast<int>(spare_bits) << std::endl;
+    // std::cout << "Spare bits: " << static_cast<int>(spare_bits) << std::endl;
     // write spare_bits
     ofs.seekp(256);
     ofs.write(reinterpret_cast<char *>(&spare_bits), 1);

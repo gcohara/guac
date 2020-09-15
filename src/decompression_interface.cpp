@@ -23,16 +23,15 @@ void print_bitqueue(BitQueue bq) {
     std::cout << std::endl;
 }
 
-void Decompress::decompress_file(FilePath input, DecodingBook dcb) {
+void Decompress::decompress_file(FilePath input, FilePath output, DecodingBook dcb) {
     auto ifs = FileInterface::open_input_filestream(input);
-    auto output_file = input.replace_extension(); //remove the ".guac"
-    auto ofs = FileInterface::open_output_filestream(output_file);
+    auto ofs = FileInterface::open_output_filestream(output);
     // Get the 256th byte, which tells us how many bits of the penultimate byte
     // to ignore
     ifs.seekg(256);
     Byte loose_bits;
     ifs.read(reinterpret_cast<char *>(&loose_bits), 1);
-    std::cout << "Loose bits: " << static_cast<int>(loose_bits) << std::endl;
+    // std::cout << "Loose bits: " << static_cast<int>(loose_bits) << std::endl;
     
     // Now start reading
     Byte input_buffer[BUFSIZ];
@@ -40,9 +39,9 @@ void Decompress::decompress_file(FilePath input, DecodingBook dcb) {
     while (ifs) {
         ifs.read(reinterpret_cast<char *>(input_buffer), BUFSIZ);
         auto bytes_read = ifs.gcount();
-        std::cout << "Bytes read in: " << bytes_read << "\n";
+        // std::cout << "Bytes read in: " << bytes_read << "\n";
         auto bits = convert_buffer_to_bits(input_buffer, bytes_read);
-        std::cout << "Which was converted to " << bits.size() << " bits\n";
+        // std::cout << "Which was converted to " << bits.size() << " bits\n";
         // print_bitqueue(bits);
         if (!ifs) {             // i.e if it's the last read
             // CAUTION COULD BE A BUG IF THERE IS A MULTIPLE OF 256 BYTES IN FILE
@@ -50,7 +49,6 @@ void Decompress::decompress_file(FilePath input, DecodingBook dcb) {
                 bits.pop_back(); // discard those loose bits
             }
         }
-        // problem lies below...
         decode_bitqueue(ofs, dcb, bits);
     }
     
