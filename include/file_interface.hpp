@@ -4,8 +4,8 @@
 #include "type_aliases.hpp"
 
 namespace FileInterface {
-    CharFreqHashMap get_frequencies(FilePath input_file);
-    void compress_file(FilePath input_file, FilePath output_file, EncodingBook ecb);
+    CharFreqHashMap character_frequencies(FilePath input_file);
+    CodeLenMap codeword_lengths_from_file(FilePath compressed_file);
     std::ofstream open_output_filestream(FilePath output_file);
     std::ifstream open_input_filestream(FilePath input_file);
 }

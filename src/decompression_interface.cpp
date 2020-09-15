@@ -54,22 +54,6 @@ void Decompress::decompress_file(FilePath input, FilePath output, DecodingBook d
     
 }
 
-CodeLenMap Decompress::codeword_lengths_from_file(FilePath input) {
-    auto ifs = FileInterface::open_input_filestream(input);
-    CodeLenMap clm {};
-    char cw_lens[256];
-    ifs.read(cw_lens, 256);
-    for (Byte i = 0; i < 255; i++) {
-        // ignore codewords with zero length
-        if (cw_lens[i] == 0) {
-            continue;
-        }
-        clm.try_emplace(cw_lens[i], CharPriorQ {});
-        clm.at(cw_lens[i]).push(i);
-    }
-    return clm;
-}
-
 namespace {
    
     void decode_bitqueue(std::ofstream& ofs, DecodingBook dcb, BitQueue& bits) {

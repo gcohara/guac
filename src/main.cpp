@@ -19,6 +19,7 @@
 #include "../include/codebooks.hpp"
 #include "../include/file_interface.hpp"
 #include "../include/decompression_interface.hpp"
+#include "../include/compress.hpp"
 
 void print_pq(CharPriorQ pq);
 void print_cw_lens(CodeLenMap clm);
@@ -36,18 +37,16 @@ int main(int argc, char ** argv) {
         else {
             output_file = {argv[3]};
         }
-        std::cout << "Compressing file \"" << input_file <<"\" to output file \""
-                  << output_file << "\"" << std::endl;
-        auto frequencies = FileInterface::get_frequencies(input_file);
+        std::cout << "Compressing file: \"" << input_file
+                  <<"\" to output file \"" << output_file
+                  << "\"" << std::endl;
+        auto frequencies = FileInterface::character_frequencies(input_file);
         // Print them out for checking!
-        // for (auto n : frequencies) {
-        //     std::cout << "Key:[" << static_cast<int>(n.first) << "] Value:["
-        //               << n.second << "]\n";
-        // }
+
         auto code_lens = Huffman::get_codeword_lengths(frequencies);
         // print_cw_lens(code_lens);
         auto encoding_codebook = Codebooks::codebook_for_encoding(code_lens);
-        FileInterface::compress_file(input_file, output_file, encoding_codebook);
+        Compress::compress_file(input_file, output_file, encoding_codebook);
     }
     else if (argv[1] == "--decompress"s) {
         FilePath input_file {argv[2]};
@@ -58,7 +57,7 @@ int main(int argc, char ** argv) {
         else {
             output_file = {argv[3]};
         }
-        auto code_lens = Decompress::codeword_lengths_from_file(input_file);
+        auto code_lens = FileInterface::codeword_lengths_from_file(input_file);
         auto decoding_codebook = Codebooks::codebook_for_decoding(code_lens);
         Decompress::decompress_file(input_file, output_file, decoding_codebook);
     }
@@ -77,4 +76,11 @@ void print_pq(CharPriorQ pq){
         pq.pop();
     }
     std::cout << "\n";
+}
+
+void print_freqs(CharFreqHashMap cfm) {
+    for (auto n : cfm) {
+        std::cout << "Key:[" << static_cast<int>(n.first) << "] Value:["
+                  << n.second << "]\n";
+    }
 }
