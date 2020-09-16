@@ -2,10 +2,12 @@
 #define TYPE_ALIASES_H
 
 #include <cstdint>
+#include <cstdio>
 #include <filesystem>
 #include <unordered_map>
 #include <queue>
 #include <map>
+#include <array>
 
 #define NUM_BYTES 256
 
@@ -22,6 +24,8 @@ using ByteVec = std::vector<Byte>;
 using ByteDeq = std::deque<Byte>;
 using BitQueue = std::deque<bool>;
 using FilePath = std::filesystem::path;
+using InptBuff = std::array<char, BUFSIZ>;
+using OutptBuff = std::vector<char>;
 struct Node;
 
 struct CwHash {
