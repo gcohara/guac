@@ -3,9 +3,12 @@
 #include "../include/codebooks.hpp"
 
 namespace {
-    void print_encoding_codebook(EncodingBook ecb);
-    void increment_codeword(Codeword & cw);
-    void print_dcb(DecodingBook dcb);
+    // Increments a codeword by 1.
+    void increment_codeword(Codeword& cw);
+    
+    // Print functions used for debugging.
+    void print_dcb(DecodingBook const& dcb);
+    void print_encoding_codebook(EncodingBook const& ecb);
 }
 
 // Gets a codebook for encoding - that is, one indexed by byte and having
@@ -66,7 +69,7 @@ namespace {
     // Helper function for codebook creation, increments a codeword by 1.
     // So, if cw is 1001, returns 1010.
     // If cw is 111, returns 1000.
-    void increment_codeword(Codeword & cw) {
+    void increment_codeword(Codeword& cw) {
         if (cw.size() == 0) {
             cw.push_back(0);
             return;
@@ -84,7 +87,7 @@ namespace {
     }
 
     // Function to print out codebooks, used for debugging.
-    void print_dcb(DecodingBook dcb) {
+    void print_dcb(DecodingBook const& dcb) {
         for (auto& n : dcb) {
             for (auto x : n.first) {
                 std::cout << x;
@@ -94,7 +97,7 @@ namespace {
     }
 
     // Function to print out codebooks, used for debugging.
-    void print_encoding_codebook(EncodingBook ecb) {
+    void print_encoding_codebook(EncodingBook const& ecb) {
         for (auto & n : ecb) {
             std::cout << n.first << " - has key ";
             for (auto x : n.second) {
