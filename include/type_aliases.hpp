@@ -7,6 +7,8 @@
 #include <queue>
 #include <map>
 
+#define NUM_BYTES 256
+
 using Codeword = std::deque<bool>;
 struct CwHash;
 using Byte = std::uint8_t;

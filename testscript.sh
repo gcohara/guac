@@ -10,14 +10,13 @@ fi
 
 for file in ./testfiles/originals/*
 do
-    sudo ./bin/guac --compress $file ./testfiles/compressed/$(basename $file)
+    sudo ./bin/guac --compress $file ./testfiles/compressed/$(basename $file).guac
     
-    echo ./testfiles/compressed/$(basename $file)
 done
 
 for file in ./testfiles/compressed/*
 do
-    sudo ./bin/guac --decompress $file ./testfiles/decompressed/$(basename $file)
+    sudo ./bin/guac --decompress $file ./testfiles/decompressed/$(basename $file .guac)
 done
 
 for file in ./testfiles/decompressed/*

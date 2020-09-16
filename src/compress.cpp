@@ -1,12 +1,16 @@
+#include <cstdio>
 #include <deque>
 #include <fstream>
+#include <array>
+#include <vector>
 
 #include "../include/compress.hpp"
 #include "../include/file_interface.hpp"
 
 using std::ofstream,
     std::ifstream,
-    std::deque;
+    std::deque,
+    std::array;
 
 namespace {
     deque<Byte> file_header(EncodingBook& ecb);
@@ -21,16 +25,21 @@ void Compress::compress_file(FilePath input, FilePath output, EncodingBook ecb) 
     auto ofs = FileInterface::open_output_filestream(output);
     write_file_header(ofs, ecb);
 
-    char input_buffer[BUFSIZ];
+    array<char, BUFSIZ> input_buffer;
     deque<bool> encoding_buffer{};
-
+    // needs to be large, maximum cw size is 256 bits
+    // array<char, BUFSIZ * NUM_BYTES> output_buffer;
+    std::vector<char> output_buffer {};
+    
     // definitely need an output buffer in this loop, would speed it up hugely
     while (ifs) {
-        ifs.read(input_buffer, BUFSIZ);
+        ifs.read(input_buffer.data(), BUFSIZ);
         auto bytes_read = ifs.gcount();
         
-        for (int i = 0; i < bytes_read; i++) {
-            Byte c = input_buffer[i];
+        for (auto iter = input_buffer.cbegin();
+             iter < input_buffer.cbegin() + bytes_read;
+             iter++) {
+            Byte c = *iter;
             auto cw = ecb.at(c);
             // add to output buffer
             encoding_buffer.insert(encoding_buffer.end(), cw.begin(), cw.end());
@@ -40,8 +49,11 @@ void Compress::compress_file(FilePath input, FilePath output, EncodingBook ecb) 
         while (encoding_buffer.size() >= 8) {
             char byte_out = static_cast<char>
                 (byte_from_encoding_buffer(encoding_buffer));
-            ofs.write(&byte_out, 1);
+            output_buffer.push_back(byte_out);
+            // ofs.write(&byte_out, 1);
         }
+        ofs.write(output_buffer.data(), output_buffer.size());
+        output_buffer.clear();
     }
     
     // now we either do or don't have some spare bits at the end
@@ -75,17 +87,16 @@ namespace {
     }
 
     // Gets the next byte to write out from our encoding buffer.
-    Byte byte_from_encoding_buffer(deque<bool>& out_buf) {
+    Byte byte_from_encoding_buffer(deque<bool> &encoding_buffer) {
         Byte output = 0;
         for (int i = 0; i < 8; i++) {
             output <<= 1;
-            output += out_buf.front();
-            out_buf.pop_front();
+            output += encoding_buffer.front();
+            encoding_buffer.pop_front();
         }
         return output;
     }
 
-    
     // Writes out 257 bytes - the first 256 are the codeword lengths for
     // each symbol in our alphabet.
     // The 257th bite is the number of trailing bits to ignore at the end of

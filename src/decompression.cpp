@@ -1,4 +1,4 @@
-#include "../include/decompression_interface.hpp"
+#include "../include/decompression.hpp"
 #include "../include/file_interface.hpp"
 #include <cstdio>
 #include <fstream>
@@ -43,12 +43,14 @@ void Decompress::decompress_file(FilePath input, FilePath output, DecodingBook d
         auto bits = convert_buffer_to_bits(input_buffer, bytes_read);
         // std::cout << "Which was converted to " << bits.size() << " bits\n";
         // print_bitqueue(bits);
+        
         if (!ifs) {             // i.e if it's the last read
             // CAUTION COULD BE A BUG IF THERE IS A MULTIPLE OF 256 BYTES IN FILE
             for (unsigned i = 0; i < loose_bits; i++) {
                 bits.pop_back(); // discard those loose bits
             }
         }
+        
         decode_bitqueue(ofs, dcb, bits);
     }
     

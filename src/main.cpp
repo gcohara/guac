@@ -18,7 +18,7 @@
 #include "../include/huffmantree.hpp"
 #include "../include/codebooks.hpp"
 #include "../include/file_interface.hpp"
-#include "../include/decompression_interface.hpp"
+#include "../include/decompression.hpp"
 #include "../include/compress.hpp"
 
 void print_pq(CharPriorQ pq);
@@ -52,11 +52,15 @@ int main(int argc, char ** argv) {
         FilePath input_file {argv[2]};
         FilePath output_file;
         if (argc < 4) {
-            output_file = input_file.replace_extension(); // remove the .guac
+            output_file = input_file;
+            output_file = output_file.replace_extension(); // remove the .guac
         }
         else {
             output_file = {argv[3]};
         }
+        std::cout << "Decompressing file: \"" << input_file
+                  <<"\" to output file \"" << output_file
+                  << "\"" << std::endl;
         auto code_lens = FileInterface::codeword_lengths_from_file(input_file);
         auto decoding_codebook = Codebooks::codebook_for_decoding(code_lens);
         Decompress::decompress_file(input_file, output_file, decoding_codebook);
