@@ -11,11 +11,21 @@ using std::ifstream,
     std::ofstream;
 
 namespace {
+    // Converts the bytes in the input buffer into bits and places them in a
+    // bitqueue.
     BitQueue convert_buffer_to_bits(InptBuff const& input_buffer, std::streamsize bytes_read);
+    // Converts a byte into bits, and appends it to a bitqueue.
     void add_byte_to_bitqueue(BitQueue& bitqueue, Byte byte);
+    // Decodes as much of the bitqueue as it can, and adds the decoded characters
+    // to the output buffer. Consumes the bitqueue as it does so.
+    // Uses a static Codeword variable that persists between calls, since codes
+    // can cross over different reads into the input buffer.
     void decode_bitqueue(OutptBuff& ob, DecodingBook const& dcb, BitQueue& bits);
 }
 
+// Main function for performing file decompression.
+// First gets the number of bits of the final byte that should be ignored, then
+// reads from input to output, decompressing as it goes.
 void Decompress::decompress_file(FilePath input, FilePath output, DecodingBook dcb) {
     auto ifs = FileInterface::open_input_filestream(input);
     auto ofs = FileInterface::open_output_filestream(output);
@@ -28,7 +38,8 @@ void Decompress::decompress_file(FilePath input, FilePath output, DecodingBook d
     
     // Now start reading
     InptBuff input_buffer;
-    std::vector<char> output_buffer {};
+    OutptBuff output_buffer {};
+    
 
     while (ifs) {
         ifs.read(input_buffer.data(), BUFSIZ);
@@ -36,7 +47,6 @@ void Decompress::decompress_file(FilePath input, FilePath output, DecodingBook d
         auto bits = convert_buffer_to_bits(input_buffer, bytes_read);
         
         if (!ifs) {             // i.e if it's the last read
-            // CAUTION COULD BE A BUG IF THERE IS A MULTIPLE OF 256 BYTES IN FILE
             for (unsigned i = 0; i < loose_bits; i++) {
                 bits.pop_back(); // discard those loose bits
             }
@@ -72,7 +82,6 @@ namespace {
         }
         
         return out;
-        
     }
 
     void add_byte_to_bitqueue(BitQueue& bitqueue, Byte byte) {
