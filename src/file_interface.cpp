@@ -46,15 +46,18 @@ ByteFreqHashMap FileInterface::character_frequencies(FilePath input) {
     auto ifs = open_input_filestream(input);
     ByteFreqHashMap frequencies{};
     InptBuff input_buffer;
+    
     while (ifs) {
         ifs.read(input_buffer.data(), BUFSIZ);
         auto bytes_read = ifs.gcount();
+        
         for (int i = 0; i < bytes_read; i++) {
             Byte c = input_buffer[i];
             frequencies.try_emplace(c, 0);
             frequencies.at(c)++;
         }
     }
+    
     return frequencies;
 }
 
