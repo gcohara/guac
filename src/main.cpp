@@ -82,7 +82,7 @@ void print_pq(CharPriorQ pq){
     std::cout << "\n";
 }
 
-void print_freqs(CharFreqHashMap cfm) {
+void print_freqs(ByteFreqHashMap cfm) {
     for (auto n : cfm) {
         std::cout << "Key:[" << static_cast<int>(n.first) << "] Value:["
                   << n.second << "]\n";

@@ -18,7 +18,7 @@ using NodePriorQ = std::priority_queue<Node*, std::vector<Node*>, NodeCompare>;
 
 namespace {
     Node * build_huffman_tree (NodePriorQ& pq);
-    NodePriorQ build_priority_queue (CharFreqHashMap const & frequencies);
+    NodePriorQ build_priority_queue (ByteFreqHashMap const & frequencies);
     bool is_leaf_node(Node * node);
     CodeLenMap& get_code_lengths(Node * tree, int depth);
 
@@ -29,7 +29,7 @@ namespace {
 // Given the frequencies of each character in the input file, returns a map
 // where the keys are characters, and the value is the length of the character's
 // Huffman codeword.
-CodeLenMap Huffman::get_codeword_lengths(CharFreqHashMap const & char_freqs) {
+CodeLenMap Huffman::get_codeword_lengths(ByteFreqHashMap const & char_freqs) {
     auto pq = build_priority_queue(char_freqs);
     // print_pq(pq); // ok!
     auto ht_root = build_huffman_tree(pq);
@@ -104,7 +104,7 @@ namespace {
         return (no_left_child && no_right_child);
     }
 
-    NodePriorQ build_priority_queue(CharFreqHashMap const & frequencies) {
+    NodePriorQ build_priority_queue(ByteFreqHashMap const & frequencies) {
         NodePriorQ pq;
         for (auto n : frequencies) {
             Node * temp = new Node;

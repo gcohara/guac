@@ -14,7 +14,7 @@
 using Codeword = std::deque<bool>;
 struct CwHash;
 using Byte = std::uint8_t;
-using CharFreqHashMap = std::unordered_map<Byte, long long int>;
+using ByteFreqHashMap = std::unordered_map<Byte, long long int>;
 using CharPriorQ = std::priority_queue<Byte, std::vector<Byte>, std::greater<Byte>>;
 using CodeLenMap = std::map<int, CharPriorQ>;
 using EncodingBook = std::unordered_map<Byte, Codeword>;

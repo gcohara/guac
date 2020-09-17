@@ -4,7 +4,7 @@
 #include "type_aliases.hpp"
 
 namespace Huffman {
-    CodeLenMap get_codeword_lengths(CharFreqHashMap const & char_frequencies);
+    CodeLenMap get_codeword_lengths(ByteFreqHashMap const & char_frequencies);
 }
 
 #endif
